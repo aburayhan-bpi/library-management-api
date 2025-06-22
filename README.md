@@ -1,17 +1,18 @@
 # 📚 Library Management System API
 
-A fully functional RESTful API for managing books and borrow records, built with **TypeScript**, **Express.js**, and **MongoDB** using **Mongoose**.
+A full-featured RESTful API for managing books and borrow records, developed using **Express.js**, **TypeScript**, and **MongoDB** with **Mongoose**.
 
 ---
 
 ## 🚀 Features
 
-- Add and manage books with proper schema validation
-- Borrow books with availability control logic
-- Automatic stock update after borrowing
+- Create, update, delete, and retrieve book records
+- Borrow books with business logic enforcement
+- Dynamic filtering, sorting, and pagination of books
+- Auto-update book availability and stock
 - Borrow summary using MongoDB Aggregation Pipeline
-- Implements Mongoose **static methods**, **middleware** (`pre`, `post`)
-- Filtering and validation built-in
+- Use of **Mongoose middleware**, **static methods**
+- Clean and well-structured API responses
 
 ---
 
@@ -20,9 +21,9 @@ A fully functional RESTful API for managing books and borrow records, built with
 - **Node.js**
 - **Express.js**
 - **TypeScript**
-- **MongoDB** (Mongoose)
+- **MongoDB** (via Mongoose)
 - **dotenv**
-- **ESLint** and **ts-node-dev** for development
+- **ts-node-dev**
 
 ---
 
@@ -33,11 +34,10 @@ src/
 │
 ├── app/
 │   ├── interfaces/       # TypeScript interfaces
-│   ├── models/           # Mongoose models (Book, Borrow)
-│   ├── routes/           # Express routers
-│   └── controllers/      # Request handling logic
+│   ├── models/           # Mongoose models
+│   └── controllers/      # Route logic
 │
-├── config/               # Database configuration
+├── app.ts                # App setup
 └── server.ts             # Entry point
 ```
 
@@ -48,7 +48,7 @@ src/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/library-management-api.git
+git clone https://github.com/aburayhan-bpi/library-management-api
 cd library-management-api
 ```
 
@@ -58,14 +58,14 @@ cd library-management-api
 npm install
 ```
 
-### 3. Create a `.env` File
+### 3. Create `.env` File
 
 ```env
 PORT=5000
-MONGO_URI=your_mongodb_connection_uri
+MONGO_URI=your_mongodb_uri
 ```
 
-### 4. Start the Development Server
+### 4. Run the Server
 
 ```bash
 npm run dev
@@ -75,72 +75,178 @@ npm run dev
 
 ## 📌 API Endpoints
 
-### ✅ Add a Book
+### ✅ 1. Create Book
 
 **POST** `/api/books`
 
+**Request:**
+
 ```json
 {
-  "title": "JavaScript Essentials",
-  "author": "John Doe",
-  "isbn": "123-456-789",
-  "copies": 5
+  "title": "The Theory of Everything",
+  "author": "Stephen Hawking",
+  "genre": "SCIENCE",
+  "isbn": "9780553380163",
+  "description": "An overview of cosmology and black holes.",
+  "copies": 5,
+  "available": true
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Book created successfully",
+  "data": { ... }
 }
 ```
 
 ---
 
-### ✅ Get All Books
+### ✅ 2. Get All Books (with Filtering & Sorting)
 
-**GET** `/api/books`
+**GET** `/api/books?filter=SCIENCE&sortBy=createdAt&sort=desc&limit=5`
+
+**Query Parameters:**
+
+- `filter`: Filter by genre
+- `sortBy`: Field to sort (e.g., createdAt)
+- `sort`: asc or desc
+- `limit`: Number of results to return
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Books retrieved successfully",
+  "data": [ ... ]
+}
+```
 
 ---
 
-### ✅ Borrow a Book
+### ✅ 3. Get Book by ID
+
+**GET** `/api/books/:bookId`
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Book retrieved successfully",
+  "data": { ... }
+}
+```
+
+---
+
+### ✅ 4. Update Book
+
+**PUT** `/api/books/:bookId`
+
+**Request:**
+
+```json
+{
+  "copies": 50
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Book updated successfully",
+  "data": { ... }
+}
+```
+
+---
+
+### ✅ 5. Delete Book
+
+**DELETE** `/api/books/:bookId`
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Book deleted successfully",
+  "data": null
+}
+```
+
+---
+
+### ✅ 6. Borrow a Book
 
 **POST** `/api/borrow`
 
+**Request:**
+
 ```json
 {
-  "book": "BOOK_OBJECT_ID",
+  "book": "64ab3f9e2a4b5c6d7e8f9012",
   "quantity": 2,
-  "dueDate": "2025-07-01"
+  "dueDate": "2025-07-18T00:00:00.000Z"
 }
 ```
 
-> 📌 Automatically updates book availability and deducts stock.
+**Business Logic:**
+
+- Verifies if enough copies are available
+- Deducts the requested quantity
+- Updates availability if stock hits 0
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Book borrowed successfully",
+  "data": { ... }
+}
+```
 
 ---
 
-### ✅ Borrowed Books Summary
+### ✅ 7. Borrowed Books Summary
 
 **GET** `/api/borrow`
 
-Returns a summary of all books borrowed along with their total quantity.
+**Response:**
 
 ```json
-[
-  {
-    "book": {
-      "title": "JavaScript Essentials",
-      "isbn": "123-456-789"
-    },
-    "totalQuantity": 5
-  }
-]
+{
+  "success": true,
+  "message": "Borrowed books summary retrieved successfully",
+  "data": [
+    {
+      "book": {
+        "title": "The Theory of Everything",
+        "isbn": "9780553380163"
+      },
+      "totalQuantity": 5
+    }
+  ]
+}
 ```
 
 ---
 
 ## 🧪 Linting
 
-To check for TypeScript and style errors, run:
-
 ```bash
 npm run lint
 ```
 
-> Make sure `eslint.config.mjs` is set up and `.eslintrc` rules are followed.
+> Ensure ESLint and TypeScript rules are followed.
 
 ---
 
